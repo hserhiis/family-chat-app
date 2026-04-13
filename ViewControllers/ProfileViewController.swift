@@ -18,16 +18,23 @@ class ProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        profileImageView.backgroundColor = UIColor.lightGray
         profileImageView.image = UIImage(systemName: "person.fill")
+        profileImageView.tintColor = UIColor.label
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(presentAvatarOptions))
+        profileImageView.isUserInteractionEnabled = true
+        profileImageView.addGestureRecognizer(tap)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        
         profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
         containerView.layer.cornerRadius = 8
     }
     
-    func presentAvatarOptions() {
+    @objc func presentAvatarOptions() {
         let avatarOptionSheet = UIAlertController(title: "Change Avatar", message: "Select an option.", preferredStyle: .actionSheet)
         
         let photoAction = UIAlertAction(title: "Photo", style: .default) { _ in
