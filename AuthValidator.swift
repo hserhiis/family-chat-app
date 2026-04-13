@@ -22,6 +22,7 @@ enum ValidationError: Error {
     case emailInUse
     case signupFailed
     case signinFailed
+    case userNotFound
     
     var errorDescription: ErrorDescription {
         switch self {
@@ -41,6 +42,8 @@ enum ValidationError: Error {
             return ErrorDescription(title: "Signup Failed!", message: "Please try again later.")
         case .signinFailed:
             return ErrorDescription(title: "Signin failed!", message: "Something went wrong, please try again later.")
+        case .userNotFound:
+            return ErrorDescription(title: "User not found", message: "User is not created yet, please create an account.")
         }
     }
 }

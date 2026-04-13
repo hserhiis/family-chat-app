@@ -37,7 +37,7 @@ class AuthService {
                     case .invalidEmail:
                         completion(.invalidEmail)
                     default:
-                        return
+                        completion(.signupFailed)
                     }
                 }
             }
@@ -57,9 +57,17 @@ class AuthService {
             
             self.dbRef.child("users").child(userId).setValue(userValue)
             
+            let changeRequest = Auth.auth().currentUser?.createProfileChangeRequest()
+            
             if let username = username {
                 self.dbRef.child("usernames").child(username).setValue(userValue)
+                changeRequest?.displayName = username
+            } else {
+                changeRequest?.displayName = "Guest"
             }
+            
+            changeRequest?.commitChanges()
+            
             completion(nil)
         }
     }
@@ -80,7 +88,7 @@ class AuthService {
                 completion(.failure(.signupFailed))
             }
         } else {
-            authenticateUser(username: nil, email: email, password: password) { result in
+            authenticateUser(username: username, email: email, password: password) { result in
                 self.handleAuth(result: result, completion: completion)
             }
         }
@@ -88,24 +96,22 @@ class AuthService {
     
     func startSigninProcess(password: String, email: String, completion: @escaping(Result<Void, ValidationError>) -> Void) {
         
-        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] _, error in
             
             guard let self = self else { return }
             
             if let error = error {
                 if let authError = AuthErrorCode(rawValue: error._code)?.code {
                     switch authError {
-                    case .emailAlreadyInUse:
-                        completion(.failure(.emailInUse))
                     case .invalidEmail:
                         completion(.failure(.invalidEmail))
+                    case .userNotFound:
+                        completion(.failure(.userNotFound))
                     default:
-                        return
+                        completion(.failure(.signinFailed))
                     }
                 }
             }
-            
-            guard let result = result else {return}
             
             completion(.success(()))
         }
