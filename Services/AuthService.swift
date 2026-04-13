@@ -88,17 +88,25 @@ class AuthService {
     
     func startSigninProcess(password: String, email: String, completion: @escaping(Result<Void, ValidationError>) -> Void) {
         
-        Auth.auth().signIn(withEmail: email, password: password) { result, error in
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
+            
+            guard let self = self else { return }
             
             if let error = error {
-                print("\(error.localizedDescription)")
-                completion(.failure(.signinFailed))
-                return
+                if let authError = AuthErrorCode(rawValue: error._code)?.code {
+                    switch authError {
+                    case .emailAlreadyInUse:
+                        completion(.failure(.emailInUse))
+                    case .invalidEmail:
+                        completion(.failure(.invalidEmail))
+                    default:
+                        return
+                    }
+                }
             }
-            guard let result = result else {
-                completion(.failure(.signinFailed))
-                return
-            }
+            
+            guard let result = result else {return}
+            
             completion(.success(()))
         }
     }
